@@ -1,4 +1,4 @@
-using DownloadFiles.Models.Configs;
+using BCPUtilityDownloadFiles.Models.Configs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DownloadFiles
+namespace BCPUtilityDownloadFiles
 {
     public class Startup
     {
@@ -26,10 +26,13 @@ namespace DownloadFiles
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            
             services.AddSingleton(Configuration.GetSection("SDxConfig").Get<SdxConfig>());
             services.AddSingleton(Configuration.GetSection("StorageUrl").Get<string>());
+            services.AddSingleton(Configuration.GetSection("StorageTableConfig").Get<StorageTableConfig>());
             services.AddAutoMapper(typeof(SdxConfig));
             services.AddAutoMapper(typeof(string));
+            services.AddAutoMapper(typeof(StorageTableConfig));
             services.AddSingleton<Services.AuthenticationService>();
             services.AddSingleton<IHostedService, Services.AuthenticationService>(serviceProvider => serviceProvider.GetService<Services.AuthenticationService>());
 

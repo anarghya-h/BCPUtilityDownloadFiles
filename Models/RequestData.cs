@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DownloadFiles.Models
+namespace BCPUtilityDownloadFiles.Models
 {
     public class RequestData
     {

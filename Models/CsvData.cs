@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Azure;
+using Azure.Data.Tables;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DownloadFiles.Models
+namespace BCPUtilityDownloadFiles.Models
 {
-    public class CsvData
+    public class CsvData: ITableEntity
     {
         public string Name { get; set; }
         public string Title { get; set; }
@@ -16,11 +18,20 @@ namespace DownloadFiles.Models
         public string FileUid { get; set; }
         public string FileObid { get; set; }
         public string FileName { get; set; }
-        public string FileLastUpdatedDate { get; set; }
-        public string PlantCode { get; set; }
-        public string Unit { get; set; }
-        public string SubUnit { get; set; }
-        public string DocumentLastUpdatedDate { get; set; }
-
+        public DateTime FileLastUpdatedDate { get; set; }
+        public string? PlantCode { get; set; }
+        public string? Unit { get; set; }
+        public string? SubUnit { get; set; }
+        public DateTime DocumentLastUpdatedDate { get; set; }
+        public string FileNamePath { get; set; }
+        public string DocumentRendition { get; set; }
+        public string FileRendition { get; set; }
+        public string RenditionObid { get; set; }
+        public string RenditionPath { get; set; }
+        public string BCPFlag { get; set; }
+        public string? PartitionKey { get; set; }
+        public string? RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

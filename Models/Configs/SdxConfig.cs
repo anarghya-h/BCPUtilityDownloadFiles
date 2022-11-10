@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DownloadFiles.Models.Configs
+namespace BCPUtilityDownloadFiles.Models.Configs
 {
     public class SdxConfig
     {

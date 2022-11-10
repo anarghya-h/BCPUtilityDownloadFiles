@@ -1,4 +1,4 @@
-﻿using DownloadFiles.Models.Configs;
+﻿using BCPUtilityDownloadFiles.Models.Configs;
 using IdentityModel.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DownloadFiles.Services
+namespace BCPUtilityDownloadFiles.Services
 {
     public sealed class AuthenticationService : IHostedService, IDisposable
     {

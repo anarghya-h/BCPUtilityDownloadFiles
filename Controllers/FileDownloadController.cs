@@ -9,7 +9,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serializers.NewtonsoftJson;
 using System;
@@ -230,13 +229,13 @@ namespace DownloadFiles.Controllers
             /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
                 System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);*/
-            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
+            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
-                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
             //Downloading the updated file
-            string DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "Design_Files_" + record.Name;
-            WebClient webClient = new WebClient();
+            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
+            WebClient webClient = new();
             
             //Query to obtain the file details along with its URL
             string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.File_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
@@ -248,7 +247,7 @@ namespace DownloadFiles.Controllers
             //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Name);
 
             MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-            var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Name, ms);
+            var fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Name, ms);
             record.FileName_Path = fileUrl.ToString();
 
             //record.FileName_Path = DirectoryName + "\\" + record.Name;
@@ -258,7 +257,7 @@ namespace DownloadFiles.Controllers
                 //Downloading the updated rendition file
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl +*/ record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -276,9 +275,9 @@ namespace DownloadFiles.Controllers
                 //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
 
                 ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Rendition, ms);
+                fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Rendition, ms);
                 record.Rendition_Path = fileUrl.ToString();
-                record.Rendition_Path = DirectoryName + "\\" + record.File_Rendition;
+                record.Rendition_Path = DirectoryName + "/" + record.File_Rendition;
             }
 
             /*record.PartitionKey = tdata.PartitionKey;
@@ -295,8 +294,8 @@ namespace DownloadFiles.Controllers
         {
             Console.WriteLine("Retrieving the file details for: " + record.File_Name);
 
-            string DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "Design_Files_" + record.Name;
-            WebClient webClient = new WebClient();
+            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
+            WebClient webClient = new();
 
             //Checking if directory already exists in the folder
             /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -306,29 +305,28 @@ namespace DownloadFiles.Controllers
 
             //Checking if files are already present for a document
             //if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Name))
-            if(!storageService.CheckExists(DirectoryName + "\\" + record.File_Name))
-            {
-                //Query to obtain the file details along with its URL
-                string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.File_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
-                var request = new RestRequest(OdataQueryFileUri);
-                request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
-                request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
+            
+            //Query to obtain the file details along with its URL
+            string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.File_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
+            var request = new RestRequest(OdataQueryFileUri);
+            request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
+            request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
-                var response3 = await client.GetAsync<ApiResponse<FileData>>(request);
+            var response3 = await client.GetAsync<ApiResponse<FileData>>(request);
 
-                //Downloading the file                        
-                //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Name);
-                MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Name, ms);
-                record.FileName_Path = fileUrl.ToString();
-            }
+            //Downloading the file                        
+            //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Name);
+            MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
+            var fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Name, ms);
+            record.FileName_Path = fileUrl.ToString();
+           
             //record.FileName_Path = DirectoryName + "\\" + record.Name;
 
             if (record.Rendition_OBID != null)
             {
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl + */record.Name + "\\" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl + */record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -338,23 +336,20 @@ namespace DownloadFiles.Controllers
 
                 //Checking if files area already present for a document
 
-                if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Rendition))
-                {
-                    //Query to obtain the file details along with its URL
-                    string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.Rendition_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
-                    var request = new RestRequest(OdataQueryFileUri);
-                    request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
-                    request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
+                //if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Rendition))
+                //Query to obtain the file details along with its URL
+                OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.Rendition_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
+                request = new RestRequest(OdataQueryFileUri);
+                request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
+                request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
-                    var response3 = await client.GetAsync<ApiResponse<FileData>>(request);
+                response3 = await client.GetAsync<ApiResponse<FileData>>(request);
 
-                    //Downloading the file                        
-                    //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
-                    MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                    var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Rendition, ms);
-                    record.Rendition_Path = fileUrl.ToString();
-
-                }
+                //Downloading the file                        
+                //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
+                ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
+                fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Rendition, ms);
+                record.Rendition_Path = fileUrl.ToString();                
                 //record.Rendition_Path = DirectoryName + "\\" + record.File_Rendition;
             }
         }
@@ -362,15 +357,15 @@ namespace DownloadFiles.Controllers
         private async Task UpdateRenditionFilesAsync(BCPDocData tdata, BCPDocData record, RestClient client)
         {
             if(tdata.Rendition_OBID != null)
-                System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                System.IO.File.Delete(StorageUrl + tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
             if (record.Rendition_OBID != null)
             {
                 //Downloading the updated rendition file
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
-                WebClient webClient = new WebClient();
+                WebClient webClient = new();
 
-                var DirectoryName = StorageUrl + record.Name + "\\" + "DRnd_" + record.Name;
+                var DirectoryName = StorageUrl + record.Name + "/" + "DRnd_" + record.Name;
 
                 //Checking if directory already exists in the folder
                 if (!Directory.Exists(StorageUrl + record.Name))
@@ -385,8 +380,8 @@ namespace DownloadFiles.Controllers
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
                 var response3 = await client.GetAsync<ApiResponse<FileData>>(request);
-                webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
-                record.Rendition_Path = DirectoryName + "\\" + record.File_Rendition;
+                webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "/" + record.File_Rendition);
+                record.Rendition_Path = DirectoryName + "/" + record.File_Rendition;
             }
 
             /*record.PartitionKey = tdata.PartitionKey;
@@ -411,6 +406,7 @@ namespace DownloadFiles.Controllers
             SpreadsheetDocument spreadsheetDocument = null;
             SheetData sheetData = null;
             List<BCPDocData> records = new();
+            
             char[] reference = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
             Dictionary<string, string> Columns = new Dictionary<string, string> {
                 { "Name", "Name" },
@@ -435,62 +431,23 @@ namespace DownloadFiles.Controllers
                 { "BCP Flag", "BCPFlag" }
             };
 
-            var columnList = Columns.Values.ToList();
-
+            //var columnList = Columns.Values.ToList();
+            
             try
             {
                 var client = new RestClient().UseNewtonsoftJson();
 
-                /*Console.WriteLine("Retrieving CSV file");
-                //Query to obtain the Notification details for BCP Document Extract
-                string OdataQueryNotificationList = sdxConfig.ServerBaseUri + "User/Notifications?&$select=OBID,Name,Description,CreationDate&$filter=(contains(Name, 'SPM BCP DOC EXTRACT'))&$top=1&$skip=0&$count=true&$orderby=CreationDate+desc";
-                var request = new RestRequest(OdataQueryNotificationList);
-                request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
-                request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
-
-                var responseNotificationListData = await client.GetAsync<ApiResponse<NotificationListData>>(request);
-
-
-                //Query to obtain the URL of CSV from notification
-                string OdataQueryNotificationFile = sdxConfig.ServerBaseUri + "GetReportFileUrlFromNotification()";
-                request = new RestRequest(OdataQueryNotificationFile);
-                request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
-                request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
-
-                //Initializing the body of the request
-                RequestData data = new RequestData
-                {
-                    pstrNotificationOBID = responseNotificationListData.Value[0].Obid,
-                    isMergedRendition = false
-                };
-                var json = JsonConvert.SerializeObject(data);
-                request.AddJsonBody(json);
-
-                //Executing the POST request
-                var responseNotificationFile = await client.PostAsync<NotificationFileData>(request);
-
-                //Downloading the data of the CSV file
-                Console.WriteLine("Downloading the CSV file");
-                WebClient webClient1 = new();
-                string fileName = Path.GetFileName(responseNotificationFile.Url);
-                //webClient1.DownloadFile(responseNotificationFile.Url, StorageUrl + fileName);
-                MemoryStream ms = new MemoryStream(webClient1.DownloadData(responseNotificationFile.Url));
-
-                //Reading the CSV file to get all the list of files
-                Console.WriteLine("Reading the CSV file");
-                var records = ReadCsv(ms);*/
-
                 Console.WriteLine("Retrieving the details of BCP documents");
                 //Query to obtain the BCP documents
-                string OdataQueryBcpDocsCount = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=BCP_Flag eq 'e1CFIHOS_yesno_yes' and Primary_File eq 'e1CFIHOS_yesno_yes'&$count=true";
-                string OdataQueryBcpDocs = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=BCP_Flag eq 'e1CFIHOS_yesno_yes' and Primary_File eq 'e1CFIHOS_yesno_yes'&$count=true&$top=";
+                string OdataQueryBcpDocsCount = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=contains(Title, 'BCP')&$count=true";
+                string OdataQueryBcpDocs = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=contains(Title, 'BCP')&$count=true";
                 var request = new RestRequest(OdataQueryBcpDocsCount);
                 request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
                 var countResponse = await client.GetAsync<ODataQueryResponse>(request);
 
-                OdataQueryBcpDocs += countResponse.Count;
+                //OdataQueryBcpDocs += countResponse.Count;
                 request = new RestRequest(OdataQueryBcpDocs);
                 request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
@@ -547,6 +504,7 @@ namespace DownloadFiles.Controllers
                 sheetData = new SheetData();
 
                 Hyperlinks hyperlinks = new Hyperlinks();
+                var columnsList = records[0].GetType().GetProperties();
 
                 //Adding the headers
                 Row headerRow = new Row();
@@ -571,16 +529,11 @@ namespace DownloadFiles.Controllers
                     //record.Document_Last_Updated_Date = record.Document_Last_Updated_Date.ToUniversalTime();
                     record.FileName_Path = "";
                     record.Rendition_Path = "";
-                    Row r = new Row();
+                    Row r = new();
 
                     var tdata = DbTableData.Find(x => x.File_UID == record.File_UID);
                     if (tdata != null)
                     {
-                        /*int oldRev = Convert.ToInt32(tdata.Revision);
-                        int newRev = Convert.ToInt32(record.Revision);
-                        int oldVersion = Convert.ToInt32(tdata.Version);
-                        int newVersion = Convert.ToInt32(record.Version);*/
-
                         if (tdata.Revision == record.Revision && tdata.Version == record.Version && DateTime.Equals(tdata.File_Last_Updated_Date,record.File_Last_Updated_Date))
                         {
                             record.FileName_Path = tdata.FileName_Path;
@@ -641,31 +594,33 @@ namespace DownloadFiles.Controllers
 
                         if (column.Name == "FileName_Path" && record.File_OBID != null)
                         {
+                            int index = Array.FindIndex(columnsList, x => x.Name == column.Name) - 1;
                             Hyperlink hyperlink = new Hyperlink()
                             {
-                                Reference = "P" + (records.IndexOf(record) + 2),
+                                Reference = reference[index].ToString() + (records.IndexOf(record) + 2),
                                 Id = "HYP" + i,
                                 Display = "Click here"
                             };
                             hyperlinks.AppendChild(hyperlink);
                             cell.CellValue = new CellValue(hyperlink.Display.Value);
                             cell.StyleIndex = 1;
-                            worksheetPart.AddHyperlinkRelationship(new Uri(record.FileName_Path, UriKind.Absolute), true, hyperlink.Id);
+                            worksheetPart.AddHyperlinkRelationship(new Uri(record.Name + "/" + "Design_Files_" + record.Name, UriKind.Relative), true, hyperlink.Id);
                             i++;
                         }
 
                         if (column.Name == "Rendition_Path" && record.Rendition_OBID != null)
                         {
+                            int index = Array.FindIndex(columnsList, x => x.Name == column.Name) - 1;
                             Hyperlink hyperlink = new()
                             {
-                                Reference = "T" + (records.IndexOf(record) + 2),
+                                Reference = reference[index].ToString() + (records.IndexOf(record) + 2),
                                 Id = "HYP" + i,
                                 Display = "Click here"
                             };
                             hyperlinks.AppendChild(hyperlink);
                             cell.CellValue = new CellValue(hyperlink.Display.Value);
                             cell.StyleIndex = 1;
-                            worksheetPart.AddHyperlinkRelationship(new Uri(record.Rendition_Path, UriKind.Absolute), true, hyperlink.Id);
+                            worksheetPart.AddHyperlinkRelationship(new Uri(record.Name + "/" + "DRnd_" + record.Name, UriKind.Relative), true, hyperlink.Id);
                             i++;
                         }
                         r.AppendChild(cell);
@@ -707,11 +662,9 @@ namespace DownloadFiles.Controllers
                     var record = records.Find(x => x.File_UID == tdata.File_UID);
                     if(record == null)
                     {
-                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);
-                        dBContext.SPM_JOB_DETAILS.Remove(tdata);
-                        dBContext.SaveChanges();
+                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);                        
                         //if(Directory.Exists(StorageUrl + tdata.Name))
-                        if(storageService.CheckExists(tdata.Name))
+                        if(storageService.CheckExists(tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name))
                         {
                             /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
                             if (tdata.Rendition_OBID != null)
@@ -720,17 +673,17 @@ namespace DownloadFiles.Controllers
                             if (fileList.Length == 0)
                                 Directory.Delete(StorageUrl + tdata.Name, true);*/
 
-                            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
-                            if (tdata.Rendition_OBID != null)
-                                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
+                            if (storageService.CheckExists(tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition))
+                                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
                         }
-                        
+                        dBContext.SPM_JOB_DETAILS.Remove(tdata);
+                        dBContext.SaveChanges();
+
                     }
                 }
-
                 Console.WriteLine("Done");
-
                 //Success
                 return Ok("File(s) downloaded successfully");
 

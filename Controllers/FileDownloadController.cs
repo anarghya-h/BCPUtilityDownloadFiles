@@ -230,12 +230,12 @@ namespace DownloadFiles.Controllers
             /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
                 System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);*/
-            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
+            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
-                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
             //Downloading the updated file
-            string DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "Design_Files_" + record.Name;
+            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
             WebClient webClient = new WebClient();
             
             //Query to obtain the file details along with its URL
@@ -248,7 +248,7 @@ namespace DownloadFiles.Controllers
             //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Name);
 
             MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-            var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Name, ms);
+            var fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Name, ms);
             record.FileName_Path = fileUrl.ToString();
 
             //record.FileName_Path = DirectoryName + "\\" + record.Name;
@@ -258,7 +258,7 @@ namespace DownloadFiles.Controllers
                 //Downloading the updated rendition file
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl +*/ record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -276,9 +276,9 @@ namespace DownloadFiles.Controllers
                 //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
 
                 ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Rendition, ms);
+                fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Rendition, ms);
                 record.Rendition_Path = fileUrl.ToString();
-                record.Rendition_Path = DirectoryName + "\\" + record.File_Rendition;
+                record.Rendition_Path = DirectoryName + "/" + record.File_Rendition;
             }
 
             /*record.PartitionKey = tdata.PartitionKey;
@@ -295,7 +295,7 @@ namespace DownloadFiles.Controllers
         {
             Console.WriteLine("Retrieving the file details for: " + record.File_Name);
 
-            string DirectoryName = /*StorageUrl +*/ record.Name + "\\" + "Design_Files_" + record.Name;
+            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
             WebClient webClient = new WebClient();
 
             //Checking if directory already exists in the folder
@@ -306,7 +306,7 @@ namespace DownloadFiles.Controllers
 
             //Checking if files are already present for a document
             //if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Name))
-            if(!storageService.CheckExists(DirectoryName + "\\" + record.File_Name))
+            if(!storageService.CheckExists(DirectoryName + "/" + record.File_Name))
             {
                 //Query to obtain the file details along with its URL
                 string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.File_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
@@ -319,7 +319,7 @@ namespace DownloadFiles.Controllers
                 //Downloading the file                        
                 //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Name);
                 MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Name, ms);
+                var fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Name, ms);
                 record.FileName_Path = fileUrl.ToString();
             }
             //record.FileName_Path = DirectoryName + "\\" + record.Name;
@@ -328,7 +328,7 @@ namespace DownloadFiles.Controllers
             {
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl + */record.Name + "\\" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl + */record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -338,7 +338,8 @@ namespace DownloadFiles.Controllers
 
                 //Checking if files area already present for a document
 
-                if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Rendition))
+                //if (!System.IO.File.Exists(DirectoryName + "\\" + record.File_Rendition))
+                if(!storageService.CheckExists(DirectoryName + "/" + record.File_Rendition))
                 {
                     //Query to obtain the file details along with its URL
                     string OdataQueryFileUri = sdxConfig.ServerBaseUri + "Files('" + record.Rendition_OBID + "')/Intergraph.SPF.Server.API.Model.RetrieveFileUris";
@@ -351,7 +352,7 @@ namespace DownloadFiles.Controllers
                     //Downloading the file                        
                     //webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
                     MemoryStream ms = new MemoryStream(webClient.DownloadData(response3.Value[0].Uri));
-                    var fileUrl = storageService.UploadFileToBlob(DirectoryName + "\\" + record.File_Rendition, ms);
+                    var fileUrl = storageService.UploadFileToBlob(DirectoryName + "/" + record.File_Rendition, ms);
                     record.Rendition_Path = fileUrl.ToString();
 
                 }
@@ -362,7 +363,7 @@ namespace DownloadFiles.Controllers
         private async Task UpdateRenditionFilesAsync(BCPDocData tdata, BCPDocData record, RestClient client)
         {
             if(tdata.Rendition_OBID != null)
-                System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                System.IO.File.Delete(StorageUrl + tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
             if (record.Rendition_OBID != null)
             {
@@ -370,7 +371,7 @@ namespace DownloadFiles.Controllers
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
                 WebClient webClient = new WebClient();
 
-                var DirectoryName = StorageUrl + record.Name + "\\" + "DRnd_" + record.Name;
+                var DirectoryName = StorageUrl + record.Name + "/" + "DRnd_" + record.Name;
 
                 //Checking if directory already exists in the folder
                 if (!Directory.Exists(StorageUrl + record.Name))
@@ -385,8 +386,8 @@ namespace DownloadFiles.Controllers
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
                 var response3 = await client.GetAsync<ApiResponse<FileData>>(request);
-                webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "\\" + record.File_Rendition);
-                record.Rendition_Path = DirectoryName + "\\" + record.File_Rendition;
+                webClient.DownloadFile(response3.Value[0].Uri, DirectoryName + "/" + record.File_Rendition);
+                record.Rendition_Path = DirectoryName + "/" + record.File_Rendition;
             }
 
             /*record.PartitionKey = tdata.PartitionKey;
@@ -707,11 +708,9 @@ namespace DownloadFiles.Controllers
                     var record = records.Find(x => x.File_UID == tdata.File_UID);
                     if(record == null)
                     {
-                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);
-                        dBContext.SPM_JOB_DETAILS.Remove(tdata);
-                        dBContext.SaveChanges();
+                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);                        
                         //if(Directory.Exists(StorageUrl + tdata.Name))
-                        if(storageService.CheckExists(tdata.Name))
+                        if(storageService.CheckExists(tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name))
                         {
                             /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
                             if (tdata.Rendition_OBID != null)
@@ -720,12 +719,14 @@ namespace DownloadFiles.Controllers
                             if (fileList.Length == 0)
                                 Directory.Delete(StorageUrl + tdata.Name, true);*/
 
-                            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
-                            if (tdata.Rendition_OBID != null)
-                                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
+                            if (storageService.CheckExists(tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition))
+                                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
                         }
-                        
+                        dBContext.SPM_JOB_DETAILS.Remove(tdata);
+                        dBContext.SaveChanges();
+
                     }
                 }
 

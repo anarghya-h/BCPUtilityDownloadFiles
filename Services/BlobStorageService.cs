@@ -24,7 +24,7 @@ namespace BCPUtilityDownloadFiles.Services
         {
             //var a = client.Uri;
             var blob = client.GetBlobClient(FileName);
-            var task = blob.UploadAsync(fileData);
+            var task = blob.UploadAsync(fileData, overwrite: true);
             task.Wait();
             return blob.Uri;
         }
@@ -41,7 +41,7 @@ namespace BCPUtilityDownloadFiles.Services
             var blob = client.GetBlobClient(FileUrl);
             var task = blob.ExistsAsync();
             task.Wait();
-            return task.Result;
+            return task.Result.Value;
         }
     }
 }

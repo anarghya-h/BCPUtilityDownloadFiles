@@ -4,6 +4,7 @@ using BCPUtilityDownloadFiles.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BCPUtilityDownloadFiles.Migrations
 {
     [DbContext(typeof(BCPUtilityDBContext))]
-    partial class BCPUtilityDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221128083431_BCPTest3")]
+    partial class BCPTest3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

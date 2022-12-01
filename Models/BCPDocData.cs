@@ -32,6 +32,7 @@ namespace BCPUtilityDownloadFiles.Models
         public string Rendition_OBID { get; set;}
         public string Rendition_Path { get; set;}
         public string BCP_Flag { get; set;}
+        public string Primary_File { get; set;}
         public string Config { get; set;}
         public string Id { get; set;}
         

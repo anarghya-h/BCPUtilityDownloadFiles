@@ -229,12 +229,12 @@ namespace DownloadFiles.Controllers
             /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
                 System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);*/
-            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
+            storageService.DeleteBlob(/*StorageUrl +*/ "BCPDocuments/" + tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
             if (tdata.Rendition_OBID != null)
-                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
+                storageService.DeleteBlob(/*StorageUrl +*/ "BCPDocuments/" + tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
             //Downloading the updated file
-            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
+            string DirectoryName = /*StorageUrl +*/ "BCPDocuments/" + record.Name + "/" + "Design_Files_" + record.Name;
             WebClient webClient = new();
             
             //Query to obtain the file details along with its URL
@@ -257,7 +257,7 @@ namespace DownloadFiles.Controllers
                 //Downloading the updated rendition file
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl +*/ record.Name + "/" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl +*/ "BCPDocuments/" + record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -294,7 +294,7 @@ namespace DownloadFiles.Controllers
         {
             Console.WriteLine("Retrieving the file details for: " + record.File_Name);
 
-            string DirectoryName = /*StorageUrl +*/ record.Name + "/" + "Design_Files_" + record.Name;
+            string DirectoryName = /*StorageUrl +*/ "BCPDocuments/" + record.Name + "/" + "Design_Files_" + record.Name;
             WebClient webClient = new();
 
             //Checking if directory already exists in the folder
@@ -326,7 +326,7 @@ namespace DownloadFiles.Controllers
             {
                 Console.WriteLine("Retrieving the file details for: " + record.File_Rendition);
 
-                DirectoryName = /*StorageUrl + */record.Name + "/" + "DRnd_" + record.Name;
+                DirectoryName = /*StorageUrl + */"BCPDocuments/" + record.Name + "/" + "DRnd_" + record.Name;
                 
                 //Checking if directory already exists in the folder
                 /*if (!Directory.Exists(StorageUrl + record.Name))
@@ -439,15 +439,15 @@ namespace DownloadFiles.Controllers
 
                 Console.WriteLine("Retrieving the details of BCP documents");
                 //Query to obtain the BCP documents
-                string OdataQueryBcpDocsCount = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=contains(Title, 'BCP')&$count=true";
-                string OdataQueryBcpDocs = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=contains(Title, 'BCP')&$count=true";
+                string OdataQueryBcpDocsCount = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=BCP_Flag eq 'e1CFIHOS_yesno_yes' and Primary_File eq 'e1CFIHOS_yesno_yes'&$count=true";
+                string OdataQueryBcpDocs = sdxConfig.ServerBaseUri + "BCPDocuments?$filter=BCP_Flag eq 'e1CFIHOS_yesno_yes' and Primary_File eq 'e1CFIHOS_yesno_yes'&$count=true&$top=";
                 var request = new RestRequest(OdataQueryBcpDocsCount);
                 request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
 
                 var countResponse = await client.GetAsync<ODataQueryResponse>(request);
 
-                //OdataQueryBcpDocs += countResponse.Count;
+                OdataQueryBcpDocs += countResponse.Count;
                 request = new RestRequest(OdataQueryBcpDocs);
                 request.AddHeader("Authorization", "Bearer " + authService.tokenResponse.AccessToken);
                 request.AddHeader("X-Ingr-OnBehalfOf", sdxConfig.OnBehalfOfUser);
@@ -489,12 +489,13 @@ namespace DownloadFiles.Controllers
                 workbookStylesPart.Stylesheet = CreateStylesheet();
                 workbookStylesPart.Stylesheet.Save();
 
+                var columnsList = records[0].GetType().GetProperties();
                 Columns sheetColumns = new Columns();
                 Column sheetColumn = new Column()
                 {
                     BestFit = true,
                     Min = 1,
-                    Max = Convert.ToUInt32(Columns.Count),
+                    Max = Convert.ToUInt32(columnsList.Length),
                     CustomWidth = true,
                     Width = 30
                 };
@@ -504,7 +505,7 @@ namespace DownloadFiles.Controllers
                 sheetData = new SheetData();
 
                 Hyperlinks hyperlinks = new Hyperlinks();
-                var columnsList = records[0].GetType().GetProperties();
+                
 
                 //Adding the headers
                 Row headerRow = new Row();
@@ -653,7 +654,7 @@ namespace DownloadFiles.Controllers
                 spreadsheetDocument.Close();
 
                 ms.Position = 0;
-                storageService.UploadFileToBlob("BCPDocumentExtract.xlsx", ms);
+                storageService.UploadFileToBlob("BCPDocuments/BCPDocumentExtract.xlsx", ms);
 
                 //tableData = tableClient.Query<CsvData>().ToList();
                 DbTableData = dBContext.SPM_JOB_DETAILS.ToList();
@@ -662,24 +663,29 @@ namespace DownloadFiles.Controllers
                     var record = records.Find(x => x.File_UID == tdata.File_UID);
                     if(record == null)
                     {
-                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);                        
-                        //if(Directory.Exists(StorageUrl + tdata.Name))
-                        if(storageService.CheckExists(tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name))
+                        var path = records.Find(x => x.FileName_Path== tdata.FileName_Path);
+                        if(path == null)
                         {
-                            /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
-                            if (tdata.Rendition_OBID != null)
-                                System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
-                            var fileList = Directory.GetFiles(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name);
-                            if (fileList.Length == 0)
-                                Directory.Delete(StorageUrl + tdata.Name, true);*/
+                            if (storageService.CheckExists("BCPDocuments/" + tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name))
+                            {
+                                /*System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name + "\\" + tdata.File_Name);
+                                if (tdata.Rendition_OBID != null)
+                                    System.IO.File.Delete(StorageUrl + tdata.Name + "\\" + "DRnd_" + tdata.Name + "\\" + tdata.File_Rendition);
+                                var fileList = Directory.GetFiles(StorageUrl + tdata.Name + "\\" + "Design_Files_" + tdata.Name);
+                                if (fileList.Length == 0)
+                                    Directory.Delete(StorageUrl + tdata.Name, true);*/
 
-                            storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
-                            if (storageService.CheckExists(tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition))
-                                storageService.DeleteBlob(/*StorageUrl +*/ tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
+                                storageService.DeleteBlob(/*StorageUrl +*/ "BCPDocuments/" + tdata.Name + "/" + "Design_Files_" + tdata.Name + "/" + tdata.File_Name);
+                                if (storageService.CheckExists(tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition))
+                                    storageService.DeleteBlob(/*StorageUrl +*/ "BCPDocuments/" + tdata.Name + "/" + "DRnd_" + tdata.Name + "/" + tdata.File_Rendition);
 
+                            }                            
                         }
                         dBContext.SPM_JOB_DETAILS.Remove(tdata);
                         dBContext.SaveChanges();
+                        //tableClient.DeleteEntity(tdata.PartitionKey, tdata.RowKey);                        
+                        //if(Directory.Exists(StorageUrl + tdata.Name))
+
 
                     }
                 }
